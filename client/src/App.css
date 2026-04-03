@@ -1,0 +1,202 @@
+.App {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+nav {
+  display: flex;
+  gap: 20px;
+  padding: 15px 25px;
+  background: #2c3e50;
+  margin-bottom: 30px;
+  align-items: center;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+nav a {
+  text-decoration: none;
+  color: #ecf0f1;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+nav a:hover {
+  color: #3498db;
+}
+
+nav span {
+  margin-left: auto;
+  color: #bdc3c7;
+  font-size: 0.9em;
+}
+
+nav button {
+  background: #e74c3c;
+  padding: 5px 12px;
+  font-size: 0.85em;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 25px;
+}
+
+.product-card {
+  border: 1px solid #eee;
+  padding: 20px;
+  border-radius: 12px;
+  background: white;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+}
+
+.product-card h3 {
+  margin: 15px 0 5px;
+  font-size: 1.2em;
+}
+
+.product-card .category {
+  color: #7f8c8d;
+  font-size: 0.85em;
+  margin-bottom: 10px;
+}
+
+.product-card .price {
+  color: #27ae60;
+  font-size: 1.25em;
+  margin-bottom: 15px;
+}
+
+.product-card .info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85em;
+  color: #95a5a6;
+  margin-bottom: 15px;
+}
+
+.product-card .actions {
+  margin-top: auto;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.product-card .actions a, .product-card .actions button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  text-decoration: none;
+  text-align: center;
+}
+
+.product-card .actions a {
+  background: #3498db;
+  color: white;
+  flex: 1;
+}
+
+.edit-btn { background: #f1c40f !important; color: #333 !important; }
+.delete-btn { background: #e74c3c !important; color: white !important; }
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 500px;
+  background: #fdfdfd;
+  padding: 25px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+input, select, textarea {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1em;
+}
+
+label {
+  font-weight: 600;
+  font-size: 0.9em;
+  margin-bottom: -10px;
+}
+
+button {
+  cursor: pointer;
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: #2980b9;
+}
+
+.quick-login {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  border-radius: 12px;
+}
+
+.quick-login h3 {
+  margin-top: 0;
+  color: #495057;
+}
+
+.quick-login button {
+  margin-right: 12px;
+  background: #6c757d;
+  margin-bottom: 10px;
+}
+
+.edit-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 30px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.2);
+  border-radius: 15px;
+  z-index: 1000;
+  min-width: 400px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+th, td {
+  border: 1px solid #eee;
+  padding: 12px 15px;
+  text-align: left;
+}
+
+th {
+  background: #f4f7f6;
+  font-weight: 600;
+}
