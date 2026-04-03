@@ -1,0 +1,198 @@
+{
+  "info": {
+    "_postman_id": "practice-3-products-api",
+    "name": "Products API - Practice 3",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Local API",
+      "item": [
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/products",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/products/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "products", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Планшет\",\n    \"category\": \"Электроника\",\n    \"price\": 25000,\n    \"stock\": 20,\n    \"rating\": 4.5\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/products",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product PUT",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Ноутбук Pro\",\n    \"category\": \"Ноутбуки\",\n    \"price\": 85000,\n    \"stock\": 10,\n    \"rating\": 4.8\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/products/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "products", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product PATCH",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"price\": 79000\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/products/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "products", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/products/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "products", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "External APIs",
+      "item": [
+        {
+          "name": "Exchange Rates RUB",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://api.exchangerate-api.com/v4/latest/RUB",
+              "protocol": "https",
+              "host": ["api", "exchangerate-api", "com"],
+              "path": ["v4", "latest", "RUB"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "JSONPlaceholder Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://jsonplaceholder.typicode.com/posts",
+              "protocol": "https",
+              "host": ["jsonplaceholder", "typicode", "com"],
+              "path": ["posts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "JSONPlaceholder Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://jsonplaceholder.typicode.com/users",
+              "protocol": "https",
+              "host": ["jsonplaceholder", "typicode", "com"],
+              "path": ["users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "OpenWeatherMap Moscow",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://api.openweathermap.org/data/2.5/weather?q=Moscow&appid=YOUR_API_KEY&units=metric&lang=ru",
+              "protocol": "https",
+              "host": ["api", "openweathermap", "org"],
+              "path": ["data", "2.5", "weather"],
+              "query": [
+                {"key": "q", "value": "Moscow"},
+                {"key": "appid", "value": "YOUR_API_KEY"},
+                {"key": "units", "value": "metric"},
+                {"key": "lang", "value": "ru"}
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
