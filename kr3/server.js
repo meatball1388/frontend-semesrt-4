@@ -1,11 +1,51 @@
 const express = require('express');
 const http = require('http');
+const https = require('https');
 const { Server } = require('socket.io');
 const webpush = require('web-push');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const selfsigned = require('selfsigned');
+
+// ============================================================
+// SSL-сертификаты: если нет — генерируем самоподписанные
+// ============================================================
+const CERT_DIR = path.join(__dirname);
+const KEY_PATH = path.join(CERT_DIR, 'localhost-key.pem');
+const CERT_PATH = path.join(CERT_DIR, 'localhost.pem');
+
+function ensureCertificates() {
+    if (!fs.existsSync(KEY_PATH) || !fs.existsSync(CERT_PATH)) {
+        console.log('🔑 SSL-сертификаты не найдены. Генерируем самоподписанные...\n');
+
+        const attrs = [{ name: 'commonName', value: 'localhost' }];
+        const pems = selfsigned.generate(attrs, {
+            days: 365,
+            keySize: 2048,
+            extensions: [
+                { name: 'subjectAltName', altNames: [
+                    { type: 2, value: 'localhost' },
+                    { type: 7, ip: '127.0.0.1' },
+                    { type: 7, ip: '::1' }
+                ]}
+            ]
+        });
+
+        fs.writeFileSync(KEY_PATH, pems.private);
+        fs.writeFileSync(CERT_PATH, pems.cert);
+
+        console.log('✅ Самоподписанный сертификат создан.\n');
+    }
+}
+
+ensureCertificates();
+
+const sslOptions = {
+    key: fs.readFileSync(KEY_PATH),
+    cert: fs.readFileSync(CERT_PATH),
+};
 
 const vapidKeys = {
     publicKey: 'BEK6OR5Nz884JphH8aoSO03bO1AhRR3F35A6fxq4GaGAoGz4rWVXEWa1LJ_XgkIbVwGYZ4khK3qOsNacBczR6-k',
@@ -28,8 +68,14 @@ let subscriptions = [];
 // Хранилище активных напоминаний
 const reminders = new Map();
 
-const server = http.createServer(app);
-const io = new Server(server, {
+// HTTP сервер (для localhost — Service Worker работает без HTTPS на localhost)
+const httpServer = http.createServer(app);
+
+// HTTPS сервер (для доступа с других устройств)
+const httpsServer = https.createServer(sslOptions, app);
+
+// Socket.IO на HTTP-сервере
+const io = new Server(httpServer, {
     cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
@@ -153,7 +199,16 @@ app.post('/snooze', (req, res) => {
     res.status(200).json({ message: 'Reminder snoozed for 5 minutes' });
 });
 
-const PORT = 3001;
-server.listen(PORT, () => {
-    console.log(`Сервер запущен на http://localhost:${PORT}`);
+const PORT_HTTP = 3000;
+const PORT_HTTPS = 3001;
+
+httpServer.listen(PORT_HTTP, () => {
+    console.log(`✅ HTTP сервер запущен на http://localhost:${PORT_HTTP}`);
 });
+
+httpsServer.listen(PORT_HTTPS, () => {
+    console.log(`🔒 HTTPS сервер запущен на https://localhost:${PORT_HTTPS}`);
+});
+
+console.log(`\n📌 Используйте http://localhost:${PORT_HTTP} для разработки (Service Worker работает).`);
+console.log(`📌 https://localhost:${PORT_HTTPS} — для проверки HTTPS (SW заблокирован из-за самоподписанного сертификата).`);

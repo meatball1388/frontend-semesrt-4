@@ -4,20 +4,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заметки — PWA с напоминаниями</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#4285f4">
-    <link rel="apple-touch-icon" href="/icons/icon-152x152.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Заметки (13-18)</title>
+    <meta name="apple-mobile-web-app-title" content="Заметки">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png">
+    <link rel="icon" href="/icons/favicon.ico" sizes="16x16" type="image/ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
     <link rel="stylesheet" href="https://unpkg.com/chota@latest">
     <link rel="stylesheet" href="/style.css">
-    <link rel="icon" href="icons/favicon.ico" sizes="16x16" type="image/ico">
 </head>
 
 <body>
     <header>
-        <h1>А вот и «Заметки» - наше первое <span class="no-break">оффлайн-приложение</span></h1>
+        <h1>Заметки — <span class="no-break">PWA с напоминаниями</span></h1>
+
+        <!-- Статус подключения -->
+        <div id="status-bar" style="display: flex; justify-content: center; gap: 0.5rem; margin: 0.5rem 0;">
+            <span id="connection-status" class="tag success">Онлайн</span>
+            <span id="sw-status" class="tag primary">SW загружается...</span>
+        </div>
+
         <nav class="tabs is-center">
             <button id="home-btn" class="tab active">Главная</button>
             <button id="about-btn" class="tab">О приложении</button>

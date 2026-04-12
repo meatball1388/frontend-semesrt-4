@@ -1,5 +1,5 @@
-const CACHE_NAME = 'app-shell-v2';
-const DYNAMIC_CACHE_NAME = 'dynamic-content-v1';
+const CACHE_NAME = 'app-shell-v3';
+const DYNAMIC_CACHE_NAME = 'dynamic-content-v2';
 const ASSETS = [
     '/',
     '/index.html',
@@ -9,7 +9,14 @@ const ASSETS = [
     '/icons/favicon.ico',
     '/icons/favicon-16x16.png',
     '/icons/favicon-32x32.png',
-    '/icons/icon-152x152.png'
+    '/icons/icon-72x72.png',
+    '/icons/icon-96x96.png',
+    '/icons/icon-128x128.png',
+    '/icons/icon-144x144.png',
+    '/icons/icon-152x152.png',
+    '/icons/icon-192x192.png',
+    '/icons/icon-384x384.png',
+    '/icons/icon-512x512.png'
 ];
 
 // Установка: кэшируем статические ресурсы (App Shell)
@@ -92,8 +99,8 @@ self.addEventListener('push', (event) => {
     }
     const options = {
         body: data.body,
-        icon: '/icons/favicon-128x128.png',
-        badge: '/icons/favicon-48x48.png',
+        icon: '/icons/icon-128x128.png',
+        badge: '/icons/icon-96x96.png',
         vibrate: [200, 100, 200],
         tag: 'note-notification',
         requireInteraction: false,

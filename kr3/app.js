@@ -1,5 +1,7 @@
+// ==========================================
 // Socket.IO подключение
-const socket = io('http://localhost:3001', {
+// ==========================================
+const socket = io('http://localhost:3000', {
     transports: ['websocket', 'polling']
 });
 
@@ -15,12 +17,18 @@ socket.on('connect_error', (err) => {
     console.error('Socket.IO connection error:', err.message);
 });
 
+// ==========================================
 // DOM элементы
+// ==========================================
 const contentDiv = document.getElementById('app-content');
 const homeBtn = document.getElementById('home-btn');
 const aboutBtn = document.getElementById('about-btn');
+const connectionStatus = document.getElementById('connection-status');
+const swStatus = document.getElementById('sw-status');
 
-// Функция для преобразования VAPID ключа
+// ==========================================
+// Утилиты
+// ==========================================
 function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
@@ -32,16 +40,31 @@ function urlBase64ToUint8Array(base64String) {
     return outputArray;
 }
 
-// Функция подписки на push
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ==========================================
+// Push-уведомления
+// ==========================================
 async function subscribeToPush() {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        console.error('Push-уведомления не поддерживаются');
+        return;
+    }
     try {
+        console.log('Getting SW registration...');
         const registration = await navigator.serviceWorker.ready;
+        console.log('SW ready:', registration.scope);
+        console.log('Subscribing with VAPID key...');
         const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array('BEK6OR5Nz884JphH8aoSO03bO1AhRR3F35A6fxq4GaGAoGz4rWVXEWa1LJ_XgkIbVwGYZ4khK3qOsNacBczR6-k')
         });
-        await fetch('http://localhost:3001/subscribe', {
+        console.log('Subscription created:', subscription.endpoint);
+        await fetch('http://localhost:3000/subscribe', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(subscription)
@@ -49,17 +72,17 @@ async function subscribeToPush() {
         console.log('Подписка на push отправлена');
     } catch (err) {
         console.error('Ошибка подписки на push:', err);
+        throw err;
     }
 }
 
-// Функция отписки от push
 async function unsubscribeFromPush() {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
     try {
         const registration = await navigator.serviceWorker.ready;
         const subscription = await registration.pushManager.getSubscription();
         if (subscription) {
-            await fetch('http://localhost:3001/unsubscribe', {
+            await fetch('http://localhost:3000/unsubscribe', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ endpoint: subscription.endpoint })
@@ -72,7 +95,9 @@ async function unsubscribeFromPush() {
     }
 }
 
-// Обработчик события taskAdded от сервера
+// ==========================================
+// WebSocket уведомления
+// ==========================================
 socket.on('taskAdded', (task) => {
     console.log('Задача от другого клиента:', task);
     const notification = document.createElement('div');
@@ -84,6 +109,9 @@ socket.on('taskAdded', (task) => {
     setTimeout(() => notification.remove(), 3000);
 });
 
+// ==========================================
+// Навигация (App Shell)
+// ==========================================
 function setActiveButton(activeId) {
     [homeBtn, aboutBtn].forEach(btn => btn.classList.remove('active'));
     document.getElementById(activeId).classList.add('active');
@@ -116,7 +144,9 @@ aboutBtn.addEventListener('click', () => {
 // Загружаем главную страницу при старте
 loadContent('home');
 
+// ==========================================
 // Функционал заметок (localStorage)
+// ==========================================
 function initNotes() {
     const form = document.getElementById('note-form');
     const input = document.getElementById('note-input');
@@ -155,7 +185,7 @@ function initNotes() {
                 reminderInfo = `<br><small style="color: #4285f4;">!!! Напоминание: ${date.toLocaleString()}</small>`;
             }
             return `<li class="card" style="margin-bottom: 0.5rem; padding: 0.5rem;">
-                ${note.text}${reminderInfo}
+                ${escapeHtml(note.text)}${reminderInfo}
                 <div class="actions" style="margin-top: 0.5rem;">
                     <button class="button small" onclick="deleteNote(${i})">Удалить</button>
                 </div>
@@ -189,40 +219,44 @@ function initNotes() {
     }
 
     // Обработка обычной заметки
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const text = input.value.trim();
-        if (text) {
-            addNote(text);
-            input.value = '';
-        }
-    });
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = input.value.trim();
+            if (text) {
+                addNote(text);
+                input.value = '';
+            }
+        });
+    }
 
     // Обработка заметки с напоминанием
-    reminderForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const text = reminderText.value.trim();
-        const datetime = reminderTime.value;
-        if (text && datetime) {
-            const timestamp = new Date(datetime).getTime();
-            if (timestamp > Date.now()) {
-                addNote(text, timestamp);
-                reminderText.value = '';
-                reminderTime.value = '';
-                reminderForm.style.display = 'none';
-                showReminderBtn.textContent = 'Добавить с напоминанием';
-                // Визуальное подтверждение
-                const msg = document.createElement('div');
-                msg.className = 'card';
-                msg.style.cssText = 'background: #4CAF50; color: white; text-align: center; margin-bottom: 1rem;';
-                msg.textContent = `✓ Напоминание добавлено`;
-                list.parentNode.insertBefore(msg, list);
-                setTimeout(() => msg.remove(), 3000);
-            } else {
-                alert('Дата напоминания должна быть в будущем');
+    if (reminderForm) {
+        reminderForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = reminderText.value.trim();
+            const datetime = reminderTime.value;
+            if (text && datetime) {
+                const timestamp = new Date(datetime).getTime();
+                if (timestamp > Date.now()) {
+                    addNote(text, timestamp);
+                    reminderText.value = '';
+                    reminderTime.value = '';
+                    reminderForm.style.display = 'none';
+                    showReminderBtn.textContent = 'Добавить с напоминанием';
+                    // Визуальное подтверждение
+                    const msg = document.createElement('div');
+                    msg.className = 'card';
+                    msg.style.cssText = 'background: #4CAF50; color: white; text-align: center; margin-bottom: 1rem;';
+                    msg.textContent = `✓ Напоминание добавлено`;
+                    list.parentNode.insertBefore(msg, list);
+                    setTimeout(() => msg.remove(), 3000);
+                } else {
+                    alert('Дата напоминания должна быть в будущем');
+                }
             }
-        }
-    });
+        });
+    }
 
     loadNotes();
 }
@@ -233,24 +267,29 @@ function deleteNote(index) {
     notes.splice(index, 1);
     localStorage.setItem('notes', JSON.stringify(notes));
     const list = document.getElementById('notes-list');
-    const notes2 = JSON.parse(localStorage.getItem('notes') || '[]');
-    list.innerHTML = notes2.map((note, i) => {
-        let reminderInfo = '';
-        if (note.reminder) {
-            const date = new Date(note.reminder);
-            reminderInfo = `<br><small style="color: #4285f4;">!!! Напоминание: ${date.toLocaleString()}</small>`;
-        }
-        return `<li class="card" style="margin-bottom: 0.5rem; padding: 0.5rem;">
-            ${note.text}${reminderInfo}
-            <div class="actions" style="margin-top: 0.5rem;">
-                <button class="button small" onclick="deleteNote(${i})">Удалить</button>
-            </div>
-        </li>`;
-    }).join('');
+    if (list) {
+        const notes2 = JSON.parse(localStorage.getItem('notes') || '[]');
+        list.innerHTML = notes2.map((note, i) => {
+            let reminderInfo = '';
+            if (note.reminder) {
+                const date = new Date(note.reminder);
+                reminderInfo = `<br><small style="color: #4285f4;">!!! Напоминание: ${date.toLocaleString()}</small>`;
+            }
+            return `<li class="card" style="margin-bottom: 0.5rem; padding: 0.5rem;">
+                ${escapeHtml(note.text)}${reminderInfo}
+                <div class="actions" style="margin-top: 0.5rem;">
+                    <button class="button small" onclick="deleteNote(${i})">Удалить</button>
+                </div>
+            </li>`;
+        }).join('');
+    }
 }
 
-// Регистрация Service Worker и настройка push-уведомлений
+// ==========================================
+// Регистрация Service Worker
+// ==========================================
 async function initServiceWorker() {
+    console.log('[SW] initServiceWorker called');
     if (!('serviceWorker' in navigator)) {
         console.warn('⚠️ Service Workers не поддерживаются');
         return;
@@ -258,55 +297,94 @@ async function initServiceWorker() {
 
     const enableBtn = document.getElementById('enable-push');
     const disableBtn = document.getElementById('disable-push');
-
-    if (!enableBtn || !disableBtn) {
-        console.error('Кнопки push не найдены');
-        return;
-    }
+    console.log('[SW] enableBtn:', enableBtn ? 'found' : 'NOT FOUND');
+    console.log('[SW] disableBtn:', disableBtn ? 'found' : 'NOT FOUND');
 
     try {
         const reg = await navigator.serviceWorker.register('/sw.js');
         console.log('SW registered:', reg.scope);
+        swStatus.textContent = 'SW активен';
+        swStatus.className = 'tag success';
+
+        // Отслеживание обновлений SW
+        reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+                console.log('SW состояние:', newWorker.state);
+            });
+        });
 
         const subscription = await reg.pushManager.getSubscription();
         console.log('Subscription:', subscription ? 'active' : 'none');
 
-        if (subscription) {
-            enableBtn.style.display = 'none';
-            disableBtn.style.display = 'inline-block';
-        }
-
-        enableBtn.onclick = async () => {
-            console.log('=== enable-push clicked ===');
-            if (Notification.permission === 'denied') {
-                alert('Уведомления запрещены. Разрешите в настройках.');
-                return;
+        if (enableBtn && disableBtn) {
+            if (subscription) {
+                enableBtn.style.display = 'none';
+                disableBtn.style.display = 'inline-block';
             }
-            if (Notification.permission === 'default') {
-                const perm = await Notification.requestPermission();
-                if (perm !== 'granted') {
-                    alert('Нужно разрешить уведомления.');
+
+            enableBtn.onclick = async () => {
+                console.log('=== enable-push clicked ===');
+                console.log('Notification.permission:', Notification.permission);
+                console.log('ServiceWorker ready:', !!navigator.serviceWorker);
+                console.log('PushManager:', !!window.PushManager);
+                if (Notification.permission === 'denied') {
+                    alert('Уведомления запрещены. Разрешите в настройках браузера (значок 🔒 в адресной строке).');
                     return;
                 }
-            }
-            console.log('Calling subscribeToPush...');
-            await subscribeToPush();
-            enableBtn.style.display = 'none';
-            disableBtn.style.display = 'inline-block';
-            console.log('=== done ===');
-        };
+                if (Notification.permission === 'default') {
+                    try {
+                        const perm = await Notification.requestPermission();
+                        console.log('Permission result:', perm);
+                        if (perm !== 'granted') {
+                            alert('Нужно разрешить уведомления.');
+                            return;
+                        }
+                    } catch (permErr) {
+                        console.error('Permission error:', permErr);
+                        alert('Ошибка запроса разрешения: ' + permErr.message);
+                        return;
+                    }
+                }
+                console.log('Calling subscribeToPush...');
+                try {
+                    await subscribeToPush();
+                    enableBtn.style.display = 'none';
+                    disableBtn.style.display = 'inline-block';
+                    console.log('=== done ===');
+                } catch (subErr) {
+                    console.error('Subscribe error:', subErr);
+                    alert('Ошибка подписки: ' + subErr.message + '\n\nПроверьте, что Service Worker зарегистрирован.');
+                }
+            };
 
-        disableBtn.onclick = async () => {
-            console.log('=== disable-push clicked ===');
-            await unsubscribeFromPush();
-            disableBtn.style.display = 'none';
-            enableBtn.style.display = 'inline-block';
-            console.log('=== done ===');
-        };
+            disableBtn.onclick = async () => {
+                console.log('=== disable-push clicked ===');
+                await unsubscribeFromPush();
+                disableBtn.style.display = 'none';
+                enableBtn.style.display = 'inline-block';
+                console.log('=== done ===');
+            };
+        }
 
     } catch (err) {
         console.error('SW registration failed:', err);
+        swStatus.textContent = 'SW ошибка';
+        swStatus.className = 'tag danger';
     }
 }
 
 initServiceWorker();
+
+// ==========================================
+// Отслеживание онлайн/офлайн статуса
+// ==========================================
+window.addEventListener('online', () => {
+    connectionStatus.textContent = 'Онлайн';
+    connectionStatus.className = 'tag success';
+});
+
+window.addEventListener('offline', () => {
+    connectionStatus.textContent = 'Офлайн';
+    connectionStatus.className = 'tag warning';
+});
