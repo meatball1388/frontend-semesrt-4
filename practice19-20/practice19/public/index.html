@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Практика 19 — PostgreSQL CRUD</title>
+  <style>
+    body { font-family: sans-serif; background: #f0f0f0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+    input { display: block; width: 100%; margin-bottom: 10px; padding: 8px; }
+    button { padding: 8px 15px; cursor: pointer; border: none; border-radius: 4px; }
+    .btn-save { background: #4CAF50; color: white; }
+    .btn-del { background: #f44336; color: white; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f4f4f4; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Управление пользователями</h1>
+  
+  <!-- Поля для ввода данных -->
+  <input type="hidden" id="userId"> <!-- Скрытое поле для ID (нужно при редактировании) -->
+  <input type="text" id="firstName" placeholder="Имя">
+  <input type="text" id="lastName" placeholder="Фамилия">
+  <input type="number" id="age" placeholder="Возраст">
+  
+  <button class="btn-save" onclick="saveUser()">Сохранить</button>
+  <button onclick="clearForm()">Очистить</button>
+
+  <!-- Таблица для вывода списка -->
+  <table>
+    <thead>
+      <tr>
+        <th>Имя</th>
+        <th>Фамилия</th>
+        <th>Возраст</th>
+        <th>Дата создания</th>
+        <th>Действия</th>
+      </tr>
+    </thead>
+    <tbody id="userTable"></tbody>
+  </table>
+</div>
+
+<script>
+  const API_URL = '/api/users';
+
+  // Функция для загрузки списка пользователей с сервера
+  async function loadUsers() {
+    const res = await fetch(API_URL); // Делаем GET запрос к API
+    const users = await res.json();   // Превращаем ответ в массив объектов
+    
+    const tbody = document.getElementById('userTable');
+    tbody.innerHTML = ''; // Очищаем таблицу перед отрисовкой
+    
+    users.forEach(user => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${user.first_name}</td>
+          <td>${user.last_name}</td>
+          <td>${user.age}</td>
+          <td>${user.created_at ? new Date(user.created_at).toLocaleString() : '—'}</td>
+          <td>
+            <button onclick="editUser('${user.id}', '${user.first_name}', '${user.last_name}', ${user.age})">✏️</button>
+            <button class="btn-del" onclick="deleteUser('${user.id}')">🗑️</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  // Функция для сохранения (создание или обновление)
+  async function saveUser() {
+    const id = document.getElementById('userId').value;
+    const userData = {
+      first_name: document.getElementById('firstName').value,
+      last_name: document.getElementById('lastName').value,
+      age: document.getElementById('age').value
+    };
+
+    if (id) {
+      // Если есть ID, значит мы РЕДАКТИРУЕМ (метод PATCH)
+      await fetch(`${API_URL}/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+    } else {
+      // Если ID нет, значит СОЗДАЕМ (метод POST)
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+    }
+
+    clearForm(); // Очищаем поля
+    loadUsers(); // Обновляем список
+  }
+
+  // Функция для удаления
+  async function deleteUser(id) {
+    if (!confirm('Удалить пользователя?')) return;
+    await fetch(`${API_URL}/${id}`, { method: 'DELETE' }); // Метод DELETE
+    loadUsers(); // Обновляем список
+  }
+
+  // Заполнение формы данными для редактирования
+  function editUser(id, fName, lName, age) {
+    document.getElementById('userId').value = id;
+    document.getElementById('firstName').value = fName;
+    document.getElementById('lastName').value = lName;
+    document.getElementById('age').value = age;
+  }
+
+  // Очистка формы
+  function clearForm() {
+    document.getElementById('userId').value = '';
+    document.getElementById('firstName').value = '';
+    document.getElementById('lastName').value = '';
+    document.getElementById('age').value = '';
+  }
+
+  // Загружаем данные сразу при открытии страницы
+  loadUsers();
+</script>
+
+</body>
+</html>
